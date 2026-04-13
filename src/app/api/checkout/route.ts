@@ -9,19 +9,19 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Nisi prijavljen." }, { status: 401 });
   }
 
   const body = await request.json();
   const { bundleId, category, difficulty } = body;
 
   if (!bundleId) {
-    return NextResponse.json({ error: "Bundle ID required" }, { status: 400 });
+    return NextResponse.json({ error: "Nedostaje ID paketa." }, { status: 400 });
   }
 
   const filterParsed = purchaseFilterSchema.safeParse({ category, difficulty });
   if (!filterParsed.success) {
-    return NextResponse.json({ error: "Invalid filters" }, { status: 400 });
+    return NextResponse.json({ error: "Neispravni filtri." }, { status: 400 });
   }
 
   const { data: bundle } = await supabase
@@ -32,7 +32,7 @@ export async function POST(request: Request) {
     .single();
 
   if (!bundle) {
-    return NextResponse.json({ error: "Bundle not found" }, { status: 404 });
+    return NextResponse.json({ error: "Paket nije pronađen." }, { status: 404 });
   }
 
   // Check availability before creating purchase
@@ -61,7 +61,7 @@ export async function POST(request: Request) {
   if ((availableCount ?? 0) < bundle.question_count) {
     return NextResponse.json(
       {
-        error: `Not enough questions available. Need ${bundle.question_count}, but only ${availableCount ?? 0} are available for your filters.`,
+        error: `Nema dovoljno pitanja za odabrane filtre. Treba ${bundle.question_count}, a dostupno je ${availableCount ?? 0}.`,
       },
       { status: 400 }
     );

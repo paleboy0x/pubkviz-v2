@@ -19,6 +19,7 @@ export interface Database {
           updated_at: string;
           deletion_requested_at: string | null;
           deletion_request_note: string | null;
+          is_banned: boolean;
         };
         Insert: {
           id: string;
@@ -29,6 +30,7 @@ export interface Database {
           updated_at?: string;
           deletion_requested_at?: string | null;
           deletion_request_note?: string | null;
+          is_banned?: boolean;
         };
         Update: {
           id?: string;
@@ -38,6 +40,7 @@ export interface Database {
           updated_at?: string;
           deletion_requested_at?: string | null;
           deletion_request_note?: string | null;
+          is_banned?: boolean;
         };
       };
       questions: {

@@ -31,8 +31,11 @@ import {
   CATEGORY_LIST,
   DIFFICULTY_LEVELS,
   formatCategoryLabel,
+  QUESTION_STATUS_LABELS,
+  questionTypeLabel,
+  DIFFICULTY_LABELS_HR,
 } from "@/lib/constants";
-import { Plus, CheckCircle, Trash2, Search } from "lucide-react";
+import { Plus, CheckCircle, Trash2, Search, Undo2 } from "lucide-react";
 import { toast } from "sonner";
 import type { Question } from "@/lib/types/database";
 
@@ -74,18 +77,29 @@ export default function AdminQuestionsPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Question approved");
+    toast.success("Pitanje je odobreno.");
+    loadQuestions();
+  }
+
+  async function handleRevokeApproval(id: string) {
+    if (!confirm("Vratiti pitanje u nacrt (ukinuti odobrenje)?")) return;
+    const { error } = await supabase.from("questions").update({ status: "draft" }).eq("id", id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success("Pitanje je vraćeno u nacrt.");
     loadQuestions();
   }
 
   async function handleDelete(id: string) {
-    if (!confirm("Are you sure you want to delete this question?")) return;
+    if (!confirm("Obrisati ovo pitanje?")) return;
     const { error } = await supabase.from("questions").delete().eq("id", id);
     if (error) {
       toast.error(error.message);
       return;
     }
-    toast.success("Question deleted");
+    toast.success("Pitanje obrisano.");
     loadQuestions();
   }
 
@@ -105,7 +119,7 @@ export default function AdminQuestionsPage() {
             setShowForm(true);
           }}
         >
-          <Plus className="h-4 w-4 mr-1" /> New Question
+          <Plus className="h-4 w-4 mr-1" /> Novo pitanje
         </Button>
       </div>
 
@@ -113,7 +127,7 @@ export default function AdminQuestionsPage() {
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search questions..."
+            placeholder="Pretraži pitanja…"
             className="pl-9"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -121,10 +135,10 @@ export default function AdminQuestionsPage() {
         </div>
         <Select value={filterCategory} onValueChange={(v) => setFilterCategory(v ?? "all")}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Category" />
+            <SelectValue placeholder="Kategorija" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All categories</SelectItem>
+            <SelectItem value="all">Sve kategorije</SelectItem>
             {CATEGORY_LIST.map((c) => (
               <SelectItem key={c} value={c}>
                 {formatCategoryLabel(c)}
@@ -134,25 +148,25 @@ export default function AdminQuestionsPage() {
         </Select>
         <Select value={filterDifficulty} onValueChange={(v) => setFilterDifficulty(v ?? "all")}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Difficulty" />
+            <SelectValue placeholder="Težina" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All levels</SelectItem>
+            <SelectItem value="all">Sve razine</SelectItem>
             {DIFFICULTY_LEVELS.map((d) => (
               <SelectItem key={d} value={String(d)}>
-                Level {d}
+                {DIFFICULTY_LABELS_HR[d]}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={filterStatus} onValueChange={(v) => setFilterStatus(v ?? "all")}>
           <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder="Status pitanja" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            <SelectItem value="draft">Draft</SelectItem>
-            <SelectItem value="approved">Approved</SelectItem>
+            <SelectItem value="all">Svi statusi</SelectItem>
+            <SelectItem value="draft">{QUESTION_STATUS_LABELS.draft}</SelectItem>
+            <SelectItem value="approved">{QUESTION_STATUS_LABELS.approved}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -166,9 +180,7 @@ export default function AdminQuestionsPage() {
       >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editQuestion ? "Edit Question" : "Create Question"}
-            </DialogTitle>
+            <DialogTitle>{editQuestion ? "Uredi pitanje" : "Novo pitanje"}</DialogTitle>
           </DialogHeader>
           <QuestionForm question={editQuestion} onSuccess={handleSuccess} />
         </DialogContent>
@@ -178,19 +190,19 @@ export default function AdminQuestionsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[35%]">Question</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Difficulty</TableHead>
+              <TableHead className="w-[35%]">Pitanje</TableHead>
+              <TableHead>Kategorija</TableHead>
+              <TableHead>Težina</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Tip</TableHead>
+              <TableHead className="text-right">Akcije</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {questions.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  No questions found.
+                  Nema pitanja.
                 </TableCell>
               </TableRow>
             )}
@@ -198,13 +210,15 @@ export default function AdminQuestionsPage() {
               <TableRow key={q.id}>
                 <TableCell className="font-medium max-w-xs truncate">{q.text}</TableCell>
                 <TableCell>{formatCategoryLabel(q.category)}</TableCell>
-                <TableCell>{q.difficulty}/5</TableCell>
+                <TableCell>
+                  {DIFFICULTY_LABELS_HR[q.difficulty] ?? `${q.difficulty}/5`}
+                </TableCell>
                 <TableCell>
                   <Badge variant={q.status === "approved" ? "default" : "secondary"}>
-                    {q.status}
+                    {QUESTION_STATUS_LABELS[q.status]}
                   </Badge>
                 </TableCell>
-                <TableCell>{formatCategoryLabel(q.type)}</TableCell>
+                <TableCell>{questionTypeLabel(q.type)}</TableCell>
                 <TableCell>
                   <div className="flex items-center justify-end gap-1">
                     {q.status === "draft" && (
@@ -212,9 +226,19 @@ export default function AdminQuestionsPage() {
                         variant="ghost"
                         size="icon"
                         onClick={() => handleApprove(q.id)}
-                        title="Approve"
+                        title="Odobri"
                       >
                         <CheckCircle className="h-4 w-4 text-green-600" />
+                      </Button>
+                    )}
+                    {q.status === "approved" && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => void handleRevokeApproval(q.id)}
+                        title="Ukinuti odobrenje"
+                      >
+                        <Undo2 className="h-4 w-4 text-amber-600" />
                       </Button>
                     )}
                     <Button
@@ -225,13 +249,13 @@ export default function AdminQuestionsPage() {
                         setShowForm(true);
                       }}
                     >
-                      Edit
+                      Uredi
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDelete(q.id)}
-                      title="Delete"
+                      title="Obriši"
                     >
                       <Trash2 className="h-4 w-4 text-destructive" />
                     </Button>

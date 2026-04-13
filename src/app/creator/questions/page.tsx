@@ -19,7 +19,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { formatCategoryLabel } from "@/lib/constants";
+import {
+  formatCategoryLabel,
+  QUESTION_STATUS_LABELS,
+  DIFFICULTY_LABELS_HR,
+} from "@/lib/constants";
 import { Plus } from "lucide-react";
 import type { Question } from "@/lib/types/database";
 
@@ -65,7 +69,7 @@ export default function CreatorQuestionsPage() {
             setShowForm(true);
           }}
         >
-          <Plus className="h-4 w-4 mr-1" /> New Question
+          <Plus className="h-4 w-4 mr-1" /> Novo pitanje
         </Button>
       </div>
 
@@ -78,9 +82,7 @@ export default function CreatorQuestionsPage() {
       >
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              {editQuestion ? "Edit Question" : "Create Question"}
-            </DialogTitle>
+            <DialogTitle>{editQuestion ? "Uredi pitanje" : "Novo pitanje"}</DialogTitle>
           </DialogHeader>
           <QuestionForm question={editQuestion} onSuccess={handleSuccess} />
         </DialogContent>
@@ -90,18 +92,18 @@ export default function CreatorQuestionsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-[40%]">Question</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Difficulty</TableHead>
+              <TableHead className="w-[40%]">Pitanje</TableHead>
+              <TableHead>Kategorija</TableHead>
+              <TableHead>Težina</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Akcije</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {questions.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  No questions yet. Create your first question above.
+                  Još nema pitanja. Dodaj prvo iznad.
                 </TableCell>
               </TableRow>
             )}
@@ -111,10 +113,10 @@ export default function CreatorQuestionsPage() {
                   {q.text}
                 </TableCell>
                 <TableCell>{formatCategoryLabel(q.category)}</TableCell>
-                <TableCell>{q.difficulty}/5</TableCell>
+                <TableCell>{DIFFICULTY_LABELS_HR[q.difficulty] ?? `${q.difficulty}/5`}</TableCell>
                 <TableCell>
                   <Badge variant={q.status === "approved" ? "default" : "secondary"}>
-                    {q.status}
+                    {QUESTION_STATUS_LABELS[q.status]}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">
@@ -127,7 +129,7 @@ export default function CreatorQuestionsPage() {
                         setShowForm(true);
                       }}
                     >
-                      Edit
+                      Uredi
                     </Button>
                   )}
                 </TableCell>

@@ -21,7 +21,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CATEGORY_LIST, DIFFICULTY_LEVELS, formatCategoryLabel } from "@/lib/constants";
+import {
+  CATEGORY_LIST,
+  DIFFICULTY_LEVELS,
+  DIFFICULTY_LABELS_HR,
+  formatCategoryLabel,
+} from "@/lib/constants";
 import { Download, ShoppingCart, DollarSign } from "lucide-react";
 import type { Profile, Bundle } from "@/lib/types/database";
 
@@ -111,22 +116,30 @@ export default function AdminReportsPage() {
     loadReports();
   }, [loadReports]);
 
+  function formatDifficultyCell(value: number | null) {
+    if (value == null) return "—";
+    return DIFFICULTY_LABELS_HR[value] ?? String(value);
+  }
+
   function exportCSV() {
-    const header = "Date,Customer,Bundle,Questions,Category Filter,Difficulty Filter\n";
+    const header =
+      "Datum,Kupac,Paket,Broj pitanja,Filtar kategorije,Filtar težine\n";
     const csvRows = rows.map((r) => {
-      const name = r.user ? `${r.user.first_name} ${r.user.last_name}` : "Unknown";
-      const bundle = r.bundle?.name ?? "Unknown";
+      const name = r.user ? `${r.user.first_name} ${r.user.last_name}` : "Nepoznato";
+      const bundle = r.bundle?.name ?? "Nepoznato";
       const count = r.bundle?.question_count ?? 0;
-      const cat = r.category_filter ? formatCategoryLabel(r.category_filter) : "Any";
-      const diff = r.difficulty_filter ?? "Any";
-      const date = new Date(r.created_at).toLocaleDateString();
+      const cat = r.category_filter ? formatCategoryLabel(r.category_filter) : "—";
+      const diff = formatDifficultyCell(r.difficulty_filter);
+      const date = new Date(r.created_at).toLocaleDateString("hr-HR");
       return `${date},"${name}","${bundle}",${count},${cat},${diff}`;
     });
-    const blob = new Blob([header + csvRows.join("\n")], { type: "text/csv" });
+    const blob = new Blob(["\uFEFF" + header + csvRows.join("\n")], {
+      type: "text/csv;charset=utf-8",
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `sales-report-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `prodajni-izvjestaj-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -136,7 +149,7 @@ export default function AdminReportsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Prodajni izvještaji</h1>
         <Button variant="outline" onClick={exportCSV} disabled={rows.length === 0}>
-          <Download className="h-4 w-4 mr-1" /> Export CSV
+          <Download className="h-4 w-4 mr-1" /> Izvezi CSV
         </Button>
       </div>
 
@@ -144,7 +157,7 @@ export default function AdminReportsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Total Sales
+              Ukupno prodaja
             </CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -155,7 +168,7 @@ export default function AdminReportsPage() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              Questions Sold
+              Prodana pitanja (kom)
             </CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -169,21 +182,21 @@ export default function AdminReportsPage() {
 
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
         <div className="space-y-1.5">
-          <Label className="text-xs">From</Label>
+          <Label className="text-xs">Od</Label>
           <Input type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">To</Label>
+          <Label className="text-xs">Do</Label>
           <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Creator</Label>
+          <Label className="text-xs">Autor</Label>
           <Select value={creatorId} onValueChange={(v) => setCreatorId(v ?? "all")}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">Svi</SelectItem>
               {creators.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.first_name} {c.last_name}
@@ -193,13 +206,13 @@ export default function AdminReportsPage() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Bundle</Label>
+          <Label className="text-xs">Paket</Label>
           <Select value={bundleId} onValueChange={(v) => setBundleId(v ?? "all")}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">Svi</SelectItem>
               {bundles.map((b) => (
                 <SelectItem key={b.id} value={b.id}>
                   {b.name}
@@ -209,13 +222,13 @@ export default function AdminReportsPage() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Category</Label>
+          <Label className="text-xs">Kategorija</Label>
           <Select value={category} onValueChange={(v) => setCategory(v ?? "all")}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">Sve</SelectItem>
               {CATEGORY_LIST.map((c) => (
                 <SelectItem key={c} value={c}>
                   {formatCategoryLabel(c)}
@@ -225,16 +238,16 @@ export default function AdminReportsPage() {
           </Select>
         </div>
         <div className="space-y-1.5">
-          <Label className="text-xs">Difficulty</Label>
+          <Label className="text-xs">Težina</Label>
           <Select value={difficulty} onValueChange={(v) => setDifficulty(v ?? "all")}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">Sve</SelectItem>
               {DIFFICULTY_LEVELS.map((d) => (
                 <SelectItem key={d} value={String(d)}>
-                  Level {d}
+                  {DIFFICULTY_LABELS_HR[d]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -246,34 +259,34 @@ export default function AdminReportsPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Date</TableHead>
-              <TableHead>Customer</TableHead>
-              <TableHead>Bundle</TableHead>
-              <TableHead>Questions</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead>Difficulty</TableHead>
+              <TableHead>Datum</TableHead>
+              <TableHead>Kupac</TableHead>
+              <TableHead>Paket</TableHead>
+              <TableHead>Pitanja</TableHead>
+              <TableHead>Kategorija</TableHead>
+              <TableHead>Težina</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {rows.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
-                  No sales found for the selected filters.
+                  Nema prodaja za odabrane filtre.
                 </TableCell>
               </TableRow>
             )}
             {rows.map((r) => (
               <TableRow key={r.id}>
-                <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(r.created_at).toLocaleDateString("hr-HR")}</TableCell>
                 <TableCell>
                   {r.user ? `${r.user.first_name} ${r.user.last_name}` : "—"}
                 </TableCell>
                 <TableCell>{r.bundle?.name ?? "—"}</TableCell>
                 <TableCell>{r.bundle?.question_count ?? "—"}</TableCell>
                 <TableCell>
-                  {r.category_filter ? formatCategoryLabel(r.category_filter) : "Any"}
+                  {r.category_filter ? formatCategoryLabel(r.category_filter) : "—"}
                 </TableCell>
-                <TableCell>{r.difficulty_filter ?? "Any"}</TableCell>
+                <TableCell>{formatDifficultyCell(r.difficulty_filter)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

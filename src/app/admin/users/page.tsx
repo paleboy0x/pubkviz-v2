@@ -30,14 +30,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Plus } from "lucide-react";
+import { Plus, ShieldBan, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 import type { Profile } from "@/lib/types/database";
+import { USER_ROLE_LABELS } from "@/lib/constants";
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [myId, setMyId] = useState<string | null>(null);
   const supabase = createClient();
 
   const {
@@ -61,7 +63,8 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     loadUsers();
-  }, [loadUsers]);
+    void supabase.auth.getUser().then(({ data: { user } }) => setMyId(user?.id ?? null));
+  }, [loadUsers, supabase.auth]);
 
   async function onSubmit(data: CreateUserInput) {
     setLoading(true);
@@ -75,15 +78,34 @@ export default function AdminUsersPage() {
     const result = await res.json();
 
     if (!res.ok) {
-      toast.error(result.error || "Failed to create user");
+      toast.error(result.error || "Neuspjelo kreiranje");
       setLoading(false);
       return;
     }
 
-    toast.success("User created successfully");
+    toast.success("Korisnik je kreiran");
     reset();
     setShowForm(false);
     setLoading(false);
+    loadUsers();
+  }
+
+  async function toggleBan(target: Profile) {
+    if (target.role === "admin") {
+      toast.error("Administratore ne možeš blokirati.");
+      return;
+    }
+    if (target.id === myId) {
+      toast.error("Ne možeš blokirati sam sebe.");
+      return;
+    }
+    const next = !target.is_banned;
+    const { error } = await supabase.from("profiles").update({ is_banned: next }).eq("id", target.id);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    toast.success(next ? "Korisnik je blokiran." : "Blokada je uklonjena.");
     loadUsers();
   }
 
@@ -92,26 +114,26 @@ export default function AdminUsersPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Korisnici</h1>
         <Button onClick={() => setShowForm(true)}>
-          <Plus className="h-4 w-4 mr-1" /> Create User
+          <Plus className="h-4 w-4 mr-1" /> Novi korisnik
         </Button>
       </div>
 
       <Dialog open={showForm} onOpenChange={setShowForm}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Create New User</DialogTitle>
+            <DialogTitle>Novi korisnik</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="firstName">First name</Label>
+                <Label htmlFor="firstName">Ime</Label>
                 <Input id="firstName" {...register("firstName")} />
                 {errors.firstName && (
                   <p className="text-sm text-destructive">{errors.firstName.message}</p>
                 )}
               </div>
               <div className="space-y-2">
-                <Label htmlFor="lastName">Last name</Label>
+                <Label htmlFor="lastName">Prezime</Label>
                 <Input id="lastName" {...register("lastName")} />
                 {errors.lastName && (
                   <p className="text-sm text-destructive">{errors.lastName.message}</p>
@@ -119,21 +141,19 @@ export default function AdminUsersPage() {
               </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
+              <Label htmlFor="email">E-pošta</Label>
               <Input id="email" type="email" {...register("email")} />
-              {errors.email && (
-                <p className="text-sm text-destructive">{errors.email.message}</p>
-              )}
+              {errors.email && <p className="text-sm text-destructive">{errors.email.message}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
+              <Label htmlFor="password">Lozinka</Label>
               <Input id="password" type="password" {...register("password")} />
               {errors.password && (
                 <p className="text-sm text-destructive">{errors.password.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label>Role</Label>
+              <Label>Uloga</Label>
               <Select
                 value={watch("role")}
                 onValueChange={(v) => {
@@ -141,19 +161,17 @@ export default function AdminUsersPage() {
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select role" />
+                  <SelectValue placeholder="Odaberi ulogu" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="creator">Creator</SelectItem>
-                  <SelectItem value="user">User</SelectItem>
+                  <SelectItem value="creator">{USER_ROLE_LABELS.creator}</SelectItem>
+                  <SelectItem value="user">{USER_ROLE_LABELS.user}</SelectItem>
                 </SelectContent>
               </Select>
-              {errors.role && (
-                <p className="text-sm text-destructive">{errors.role.message}</p>
-              )}
+              {errors.role && <p className="text-sm text-destructive">{errors.role.message}</p>}
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Creating..." : "Create User"}
+              {loading ? "Spremanje…" : "Kreiraj"}
             </Button>
           </form>
         </DialogContent>
@@ -163,16 +181,18 @@ export default function AdminUsersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>Joined</TableHead>
+              <TableHead>Ime</TableHead>
+              <TableHead>Uloga</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Datum</TableHead>
+              <TableHead className="text-right">Akcije</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {users.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="text-center text-muted-foreground py-8">
-                  No users found.
+                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                  Nema korisnika.
                 </TableCell>
               </TableRow>
             )}
@@ -184,18 +204,39 @@ export default function AdminUsersPage() {
                 <TableCell>
                   <Badge
                     variant={
-                      u.role === "admin"
-                        ? "default"
-                        : u.role === "creator"
-                        ? "secondary"
-                        : "outline"
+                      u.role === "admin" ? "default" : u.role === "creator" ? "secondary" : "outline"
                     }
                   >
-                    {u.role}
+                    {USER_ROLE_LABELS[u.role]}
                   </Badge>
                 </TableCell>
                 <TableCell>
-                  {new Date(u.created_at).toLocaleDateString()}
+                  {u.is_banned ? (
+                    <Badge variant="destructive">Blokiran</Badge>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">Aktivan</span>
+                  )}
+                </TableCell>
+                <TableCell>{new Date(u.created_at).toLocaleDateString("hr-HR")}</TableCell>
+                <TableCell className="text-right">
+                  {u.role !== "admin" && u.id !== myId && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => void toggleBan(u)}
+                    >
+                      {u.is_banned ? (
+                        <>
+                          <ShieldCheck className="h-4 w-4 mr-1" /> Otključaj
+                        </>
+                      ) : (
+                        <>
+                          <ShieldBan className="h-4 w-4 mr-1" /> Blokiraj
+                        </>
+                      )}
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}

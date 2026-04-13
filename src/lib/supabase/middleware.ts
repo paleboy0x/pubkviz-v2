@@ -1,6 +1,12 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+function applyCookies(from: NextResponse, to: NextResponse) {
+  from.cookies.getAll().forEach((c) => {
+    to.cookies.set(c.name, c.value);
+  });
+}
+
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
@@ -17,9 +23,7 @@ export async function updateSession(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
-          );
+          cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
           supabaseResponse = NextResponse.next({ request });
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, options)
@@ -35,9 +39,35 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
 
-  // Public routes that don't require auth
   const publicRoutes = ["/", "/auth/login", "/auth/register", "/auth/callback", "/auth/verify"];
   const isPublicRoute = publicRoutes.some((route) => path === route || path.startsWith(route));
+
+  let profile: { role: string; is_banned: boolean } | null = null;
+  if (user) {
+    const { data } = await supabase
+      .from("profiles")
+      .select("role, is_banned")
+      .eq("id", user.id)
+      .single();
+    if (data) {
+      profile = { role: data.role, is_banned: data.is_banned };
+    }
+  }
+
+  if (user && profile?.is_banned) {
+    await supabase.auth.signOut();
+    if (path.startsWith("/api/")) {
+      const res = NextResponse.json({ error: "Račun je blokiran." }, { status: 403 });
+      applyCookies(supabaseResponse, res);
+      return res;
+    }
+    const loginUrl = request.nextUrl.clone();
+    loginUrl.pathname = "/auth/login";
+    loginUrl.searchParams.set("banned", "1");
+    const redirectRes = NextResponse.redirect(loginUrl);
+    applyCookies(supabaseResponse, redirectRes);
+    return redirectRes;
+  }
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
@@ -46,12 +76,6 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && (path === "/auth/login" || path === "/auth/register")) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
     const url = request.nextUrl.clone();
     if (profile?.role === "admin") {
       url.pathname = "/admin";
@@ -60,27 +84,26 @@ export async function updateSession(request: NextRequest) {
     } else {
       url.pathname = "/dashboard";
     }
-    return NextResponse.redirect(url);
+    const redirectRes = NextResponse.redirect(url);
+    applyCookies(supabaseResponse, redirectRes);
+    return redirectRes;
   }
 
-  // Role-based route protection
   if (user && (path.startsWith("/admin") || path.startsWith("/creator"))) {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
     if (path.startsWith("/admin") && profile?.role !== "admin") {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
+      const redirectRes = NextResponse.redirect(url);
+      applyCookies(supabaseResponse, redirectRes);
+      return redirectRes;
     }
 
     if (path.startsWith("/creator") && profile?.role !== "creator" && profile?.role !== "admin") {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
-      return NextResponse.redirect(url);
+      const redirectRes = NextResponse.redirect(url);
+      applyCookies(supabaseResponse, redirectRes);
+      return redirectRes;
     }
   }
 

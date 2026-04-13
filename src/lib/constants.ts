@@ -1,146 +1,147 @@
+/** Kategorije i podkategorije — hrvatski nazivi (isti stringovi u bazi). */
 export const CATEGORIES = {
-  General_Knowledge: [
-    "Everyday_Knowledge",
-    "Actualities",
-    "Numbers_Records",
-    "Basic_World_Facts",
-    "Logic_Common_Sense",
-    "Surprising_Facts_Trick_Questions",
-    "Definitions_Terms",
-    "Abbreviations_Acronyms",
-    "Other",
+  "Opće znanje": [
+    "Svakodnevica",
+    "Aktualnosti",
+    "Brojke i rekordi",
+    "Svijet i zemljopis",
+    "Logika i zdrav razum",
+    "Zanimljivosti i trik pitanja",
+    "Definicije i pojmovi",
+    "Kratice",
+    "Ostalo",
   ],
-  History: [
-    "Ancient_History",
-    "Medieval_History",
-    "Modern_History",
-    "20th_Century",
-    "Wars_Conflicts",
-    "Political_History",
-    "Cultural_History",
-    "Historical_Figures",
-    "Other",
+  Povijest: [
+    "Stari vijek",
+    "Srednji vijek",
+    "Novi vijek",
+    "20. stoljeće",
+    "Ratovi i sukobi",
+    "Politička povijest",
+    "Kulturna povijest",
+    "Povijesne osobe",
+    "Ostalo",
   ],
-  Geography: [
-    "Countries",
-    "Capitals",
-    "Flags",
-    "Cities",
-    "Landmarks",
-    "Physical_Geography",
-    "Maps_Borders",
-    "Rivers_Mountains",
-    "Other",
+  Geografija: [
+    "Države",
+    "Glavni gradovi",
+    "Zastave",
+    "Gradovi",
+    "Znamenitosti",
+    "Fizička geografija",
+    "Karte i granice",
+    "Rijeke i planine",
+    "Ostalo",
   ],
-  Science: [
-    "Physics",
-    "Chemistry",
-    "Biology",
-    "Astronomy",
-    "Earth_Science",
-    "Human_Body",
-    "Inventions_Discoveries",
-    "Scientific_Facts",
-    "Other",
+  Znanost: [
+    "Fizika",
+    "Kemija",
+    "Biologija",
+    "Astronomija",
+    "Zemlja i okoliš",
+    "Ljudsko tijelo",
+    "Izumi i otkrića",
+    "Znanstvene činjenice",
+    "Ostalo",
   ],
-  Nature_Animals: [
-    "Wild_Animals",
-    "Domestic_Animals",
-    "Marine_Life",
-    "Birds",
-    "Plants_Trees",
-    "Ecosystems",
-    "Endangered_Species",
-    "Animal_Facts",
-    "Other",
+  "Priroda i životinje": [
+    "Divlje životinje",
+    "Domaće životinje",
+    "Morski svijet",
+    "Ptice",
+    "Biljke i drveće",
+    "Ekosustavi",
+    "Ugrožene vrste",
+    "Činjenice o životinjama",
+    "Ostalo",
   ],
-  Sports: [
-    "Football",
-    "Basketball",
-    "Tennis",
-    "Olympics",
-    "Formula1_Motorsport",
-    "American_Sports",
-    "Sports_History",
-    "Athletes",
-    "Other",
+  Sport: [
+    "Nogomet",
+    "Košarka",
+    "Tenis",
+    "Olimpijske igre",
+    "Formula i motosport",
+    "Američki sportovi",
+    "Povijest sporta",
+    "Sportaši",
+    "Ostalo",
   ],
-  Movies_TV: [
-    "Actors_Actresses",
-    "Directors",
-    "Movies_Genres",
-    "TV_Shows",
-    "Netflix_Streaming",
-    "Oscars_Awards",
-    "Famous_Quotes",
-    "Movie_Characters",
-    "Other",
+  "Film i televizija": [
+    "Glumci i glumice",
+    "Redatelji",
+    "Žanrovi filma",
+    "TV serije",
+    "Streaming",
+    "Oscari i nagrade",
+    "Poznati citati",
+    "Likovi iz filmova",
+    "Ostalo",
   ],
-  Music: [
-    "Artists_Bands",
-    "Songs",
-    "Albums",
-    "Lyrics",
-    "Music_Genres",
-    "Music_Awards",
-    "80s_90s_2000s",
-    "Music_History",
-    "Other",
+  Glazba: [
+    "Izvođači i bendovi",
+    "Pjesme",
+    "Albumi",
+    "Tekstovi",
+    "Glazbeni žanrovi",
+    "Glazbene nagrade",
+    "80-e, 90-e, 2000-e",
+    "Povijest glazbe",
+    "Ostalo",
   ],
-  Literature_Books: [
-    "Classic_Literature",
-    "Modern_Books",
-    "Authors",
-    "Characters",
-    "Poetry",
-    "Quotes",
-    "Children_Books",
-    "Fantasy_SciFi",
-    "Other",
+  Književnost: [
+    "Klasična književnost",
+    "Moderna književnost",
+    "Autori",
+    "Likovi",
+    "Poezija",
+    "Citati",
+    "Dječje knjige",
+    "Fantastika i SF",
+    "Ostalo",
   ],
-  Art_Culture: [
-    "Painting",
-    "Sculpture",
-    "Architecture",
-    "Museums_Galleries",
-    "Cultural_Traditions",
-    "Theatre",
-    "Dance",
-    "Art_History",
-    "Other",
+  "Umjetnost i kultura": [
+    "Slikarstvo",
+    "Kiparstvo",
+    "Arhitektura",
+    "Muzeji i galerije",
+    "Tradicije kulture",
+    "Kazalište",
+    "Ples",
+    "Povijest umjetnosti",
+    "Ostalo",
   ],
-  Food_Drink: [
-    "World_Cuisine",
-    "Ingredients",
-    "Dishes",
-    "Drinks_NonAlcoholic",
-    "Alcoholic_Beverages",
-    "Cooking_Techniques",
-    "Desserts",
-    "Food_Culture",
-    "Other",
+  "Hrana i piće": [
+    "Kuhinje svijeta",
+    "Sastojci",
+    "Jela",
+    "Bezalkoholna pića",
+    "Alkoholna pića",
+    "Tehnike kuhanja",
+    "Deserti",
+    "Kultura hrane",
+    "Ostalo",
   ],
-  Technology_Gaming: [
-    "Video_Games",
-    "Consoles_Platforms",
-    "Tech_Companies",
-    "Gadgets",
-    "Internet_Web",
-    "Software",
-    "IT_Computing",
-    "Gaming_History",
-    "Other",
+  "Tehnologija i videoigre": [
+    "Videoigre",
+    "Konsole i platforme",
+    "Tehnološke tvrtke",
+    "Gadgeti",
+    "Internet i web",
+    "Softver",
+    "Informatika",
+    "Povijest igranja",
+    "Ostalo",
   ],
-  Lifestyle: [
-    "Celebrities",
-    "Fashion",
-    "Social_Media",
-    "Trends",
-    "Health_Fitness",
-    "Relationships",
-    "Daily_Life",
-    "Influencers",
-    "Other",
+  "Život i trendovi": [
+    "Slavne osobe",
+    "Moda",
+    "Društvene mreže",
+    "Trendovi",
+    "Zdravlje i fitness",
+    "Odnosi",
+    "Svakodnevica",
+    "Influenceri",
+    "Ostalo",
   ],
 } as const;
 
@@ -152,25 +153,59 @@ export const CATEGORY_LIST = Object.keys(CATEGORIES) as Category[];
 export const DIFFICULTY_LEVELS = [1, 2, 3, 4, 5] as const;
 export type Difficulty = (typeof DIFFICULTY_LEVELS)[number];
 
+/** Jezik pitanja u bazi (HR / EN). */
 export const LANGUAGES = ["HR", "EN"] as const;
 export type Language = (typeof LANGUAGES)[number];
 
 export const QUESTION_TYPES = ["open", "multiple_choice", "true_false"] as const;
 export type QuestionType = (typeof QUESTION_TYPES)[number];
 
+export const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  open: "Otvoreno",
+  multiple_choice: "Višestruki izbor",
+  true_false: "Točno / netočno",
+};
+
 export const QUESTION_STATUSES = ["draft", "approved"] as const;
 export type QuestionStatus = (typeof QUESTION_STATUSES)[number];
+
+export const QUESTION_STATUS_LABELS: Record<QuestionStatus, string> = {
+  draft: "Nacrt",
+  approved: "Odobreno",
+};
 
 export const USER_ROLES = ["admin", "creator", "user"] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  admin: "Administrator",
+  creator: "Autor",
+  user: "Korisnik",
+};
+
 export const PURCHASE_STATUSES = ["pending", "completed", "failed"] as const;
 export type PurchaseStatus = (typeof PURCHASE_STATUSES)[number];
+
+export const DIFFICULTY_LABELS_HR: Record<number, string> = {
+  1: "Lako",
+  2: "Lako–srednje",
+  3: "Srednje",
+  4: "Srednje–teško",
+  5: "Teško",
+};
 
 export function getSubcategories(category: Category): readonly string[] {
   return CATEGORIES[category];
 }
 
+/** Za kategorije/podkategorije na hrvatskom — string je već čitljiv. */
 export function formatCategoryLabel(value: string): string {
-  return value.replace(/_/g, " ");
+  return value;
+}
+
+export function questionTypeLabel(type: string): string {
+  if (type === "open" || type === "multiple_choice" || type === "true_false") {
+    return QUESTION_TYPE_LABELS[type];
+  }
+  return type;
 }

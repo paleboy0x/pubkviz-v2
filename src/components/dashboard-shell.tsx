@@ -14,7 +14,6 @@ import {
   BarChart3,
   ShoppingCart,
   BookOpen,
-  UserCircle,
 } from "lucide-react";
 import type { UserRole } from "@/lib/constants";
 import { cn } from "@/lib/utils";

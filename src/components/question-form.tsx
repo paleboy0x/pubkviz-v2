@@ -10,9 +10,19 @@ import {
   DIFFICULTY_LEVELS,
   LANGUAGES,
   QUESTION_TYPES,
+  QUESTION_TYPE_LABELS,
+  DIFFICULTY_LABELS_HR,
   formatCategoryLabel,
   type Category,
 } from "@/lib/constants";
+
+function normalizeTrueFalseAnswer(answer: string): string {
+  if (answer === "True") return "Točno";
+  if (answer === "False") return "Netočno";
+  return answer;
+}
+
+const LANGUAGE_LABELS: Record<string, string> = { HR: "Hrvatski", EN: "Engleski" };
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,7 +65,10 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
           text: question.text,
           type: question.type,
           options: question.options as string[] | null,
-          answer: question.answer,
+          answer:
+            question.type === "true_false"
+              ? normalizeTrueFalseAnswer(question.answer)
+              : question.answer,
           explanation: question.explanation,
           category: question.category as Category,
           subcategory: question.subcategory,
@@ -64,7 +77,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
         }
       : {
           type: "open",
-          language: "EN",
+          language: "HR",
           difficulty: 3,
           options: null,
         },
@@ -82,7 +95,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
-      toast.error("Not authenticated");
+      toast.error("Nisi prijavljen.");
       setLoading(false);
       return;
     }
@@ -97,7 +110,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
         .upload(path, imageFile);
 
       if (uploadError) {
-        toast.error("Image upload failed: " + uploadError.message);
+        toast.error("Prijenos slike nije uspio: " + uploadError.message);
         setLoading(false);
         return;
       }
@@ -133,7 +146,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
         setLoading(false);
         return;
       }
-      toast.success("Question updated");
+      toast.success("Pitanje je spremljeno.");
     } else {
       const { error } = await supabase.from("questions").insert(payload);
       if (error) {
@@ -141,7 +154,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
         setLoading(false);
         return;
       }
-      toast.success("Question created");
+      toast.success("Pitanje je dodano.");
       reset();
       setOptions(["", ""]);
       setImageFile(null);
@@ -154,14 +167,14 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 max-w-2xl">
       <div className="space-y-2">
-        <Label htmlFor="text">Question text</Label>
+        <Label htmlFor="text">Tekst pitanja</Label>
         <Textarea id="text" rows={3} {...register("text")} />
         {errors.text && <p className="text-sm text-destructive">{errors.text.message}</p>}
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Type</Label>
+          <Label>Tip pitanja</Label>
           <Select
             value={selectedType}
             onValueChange={(v) => {
@@ -174,7 +187,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
             <SelectContent>
               {QUESTION_TYPES.map((t) => (
                 <SelectItem key={t} value={t}>
-                  {formatCategoryLabel(t)}
+                  {QUESTION_TYPE_LABELS[t]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -182,7 +195,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label>Language</Label>
+          <Label>Jezik pitanja</Label>
           <Select
             value={watch("language")}
             onValueChange={(v) => {
@@ -195,7 +208,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
             <SelectContent>
               {LANGUAGES.map((l) => (
                 <SelectItem key={l} value={l}>
-                  {l}
+                  {LANGUAGE_LABELS[l]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -205,7 +218,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
 
       {selectedType === "multiple_choice" && (
         <div className="space-y-3">
-          <Label>Options</Label>
+          <Label>Ponuđeni odgovori</Label>
           {options.map((opt, i) => (
             <div key={i} className="flex items-center gap-2">
               <Input
@@ -216,7 +229,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
                   setOptions(next);
                   setValue("options", next);
                 }}
-                placeholder={`Option ${i + 1}`}
+                placeholder={`Odgovor ${i + 1}`}
               />
               {options.length > 2 && (
                 <Button
@@ -244,7 +257,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
               setValue("options", next);
             }}
           >
-            <Plus className="h-4 w-4 mr-1" /> Add option
+            <Plus className="h-4 w-4 mr-1" /> Dodaj odgovor
           </Button>
           {errors.options && (
             <p className="text-sm text-destructive">{errors.options.message}</p>
@@ -253,7 +266,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="answer">Answer</Label>
+        <Label htmlFor="answer">Točan odgovor</Label>
         {selectedType === "true_false" ? (
           <Select
             value={watch("answer")}
@@ -262,11 +275,11 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select answer" />
+              <SelectValue placeholder="Odaberi" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="True">True</SelectItem>
-              <SelectItem value="False">False</SelectItem>
+              <SelectItem value="Točno">Točno</SelectItem>
+              <SelectItem value="Netočno">Netočno</SelectItem>
             </SelectContent>
           </Select>
         ) : (
@@ -276,13 +289,13 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="explanation">Explanation (optional)</Label>
+        <Label htmlFor="explanation">Objašnjenje (opcionalno)</Label>
         <Textarea id="explanation" rows={2} {...register("explanation")} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Category</Label>
+          <Label>Kategorija</Label>
           <Select
             value={selectedCategory ?? ""}
             onValueChange={(v) => {
@@ -293,7 +306,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
             }}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select category" />
+              <SelectValue placeholder="Odaberi kategoriju" />
             </SelectTrigger>
             <SelectContent>
               {CATEGORY_LIST.map((c) => (
@@ -309,7 +322,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
         </div>
 
         <div className="space-y-2">
-          <Label>Subcategory</Label>
+          <Label>Podkategorija</Label>
           <Select
             value={watch("subcategory") ?? ""}
             onValueChange={(v) => {
@@ -318,7 +331,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
             disabled={!selectedCategory}
           >
             <SelectTrigger>
-              <SelectValue placeholder="Select subcategory" />
+              <SelectValue placeholder="Odaberi podkategoriju" />
             </SelectTrigger>
             <SelectContent>
               {subcategories.map((s) => (
@@ -335,7 +348,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label>Difficulty</Label>
+        <Label>Težina</Label>
         <Select
           value={String(watch("difficulty"))}
           onValueChange={(v) => {
@@ -348,7 +361,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
           <SelectContent>
             {DIFFICULTY_LEVELS.map((d) => (
               <SelectItem key={d} value={String(d)}>
-                {d} {d === 1 ? "(Easy)" : d === 5 ? "(Hard)" : ""}
+                {DIFFICULTY_LABELS_HR[d]}
               </SelectItem>
             ))}
           </SelectContent>
@@ -356,7 +369,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
       </div>
 
       <div className="space-y-2">
-        <Label>Image (optional)</Label>
+        <Label>Slika (opcionalno)</Label>
         <div className="flex items-center gap-3">
           <Button
             type="button"
@@ -365,7 +378,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
             onClick={() => document.getElementById("image-upload")?.click()}
           >
             <Upload className="h-4 w-4 mr-1" />
-            {imageFile ? imageFile.name : "Choose file"}
+            {imageFile ? imageFile.name : "Odaberi datoteku"}
           </Button>
           <input
             id="image-upload"
@@ -388,11 +401,7 @@ export function QuestionForm({ question, onSuccess }: QuestionFormProps) {
       </div>
 
       <Button type="submit" disabled={loading}>
-        {loading
-          ? "Saving..."
-          : question
-          ? "Update question"
-          : "Create question"}
+        {loading ? "Spremanje…" : question ? "Spremi promjene" : "Dodaj pitanje"}
       </Button>
     </form>
   );

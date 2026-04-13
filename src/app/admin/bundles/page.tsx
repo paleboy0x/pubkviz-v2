@@ -93,7 +93,7 @@ export default function AdminBundlesPage() {
         setLoading(false);
         return;
       }
-      toast.success("Bundle updated");
+      toast.success("Paket je ažuriran.");
     } else {
       const { error } = await supabase.from("bundles").insert(payload);
       if (error) {
@@ -101,7 +101,7 @@ export default function AdminBundlesPage() {
         setLoading(false);
         return;
       }
-      toast.success("Bundle created");
+      toast.success("Paket je kreiran.");
     }
 
     setShowForm(false);
@@ -116,7 +116,7 @@ export default function AdminBundlesPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold tracking-tight">Paketi</h1>
         <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1" /> New Bundle
+          <Plus className="h-4 w-4 mr-1" /> Novi paket
         </Button>
       </div>
 
@@ -130,19 +130,19 @@ export default function AdminBundlesPage() {
         <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>
-              {editBundle ? "Edit Bundle" : "Create Bundle"}
+              {editBundle ? "Uredi paket" : "Novi paket"}
             </DialogTitle>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="name">Bundle name</Label>
+              <Label htmlFor="name">Naziv paketa</Label>
               <Input id="name" {...register("name")} />
               {errors.name && (
                 <p className="text-sm text-destructive">{errors.name.message}</p>
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="paddlePriceId">Paddle Price ID</Label>
+              <Label htmlFor="paddlePriceId">Paddle ID cijene</Label>
               <Input
                 id="paddlePriceId"
                 placeholder="pri_..."
@@ -153,7 +153,7 @@ export default function AdminBundlesPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="questionCount">Question count</Label>
+              <Label htmlFor="questionCount">Broj pitanja u paketu</Label>
               <Input
                 id="questionCount"
                 type="number"
@@ -169,10 +169,10 @@ export default function AdminBundlesPage() {
                 checked={watch("isActive")}
                 onCheckedChange={(v) => setValue("isActive", v)}
               />
-              <Label>Active</Label>
+              <Label>Aktivan</Label>
             </div>
             <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? "Saving..." : editBundle ? "Update" : "Create"}
+              {loading ? "Spremanje…" : editBundle ? "Spremi" : "Stvori"}
             </Button>
           </form>
         </DialogContent>
@@ -182,18 +182,18 @@ export default function AdminBundlesPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Questions</TableHead>
-              <TableHead>Paddle Price ID</TableHead>
+              <TableHead>Naziv</TableHead>
+              <TableHead>Pitanja</TableHead>
+              <TableHead>Paddle ID cijene</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="text-right">Akcije</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {bundles.length === 0 && (
               <TableRow>
                 <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
-                  No bundles configured yet.
+                  Još nema konfiguriranih paketa.
                 </TableCell>
               </TableRow>
             )}
@@ -204,7 +204,7 @@ export default function AdminBundlesPage() {
                 <TableCell className="font-mono text-xs">{b.paddle_price_id}</TableCell>
                 <TableCell>
                   <Badge variant={b.is_active ? "default" : "secondary"}>
-                    {b.is_active ? "Active" : "Inactive"}
+                    {b.is_active ? "Aktivan" : "Neaktivan"}
                   </Badge>
                 </TableCell>
                 <TableCell className="text-right">

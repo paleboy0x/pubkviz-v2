@@ -32,7 +32,7 @@ export async function POST(request: Request) {
   const signature = request.headers.get("paddle-signature");
 
   if (process.env.NODE_ENV === "production" && !verifyPaddleSignature(rawBody, signature)) {
-    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    return NextResponse.json({ error: "Neispravan potpis." }, { status: 401 });
   }
 
   const event = JSON.parse(rawBody);
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
 
   if (updateError) {
     console.error("Failed to update purchase:", updateError);
-    return NextResponse.json({ error: "Update failed" }, { status: 500 });
+    return NextResponse.json({ error: "Ažuriranje kupnje nije uspjelo." }, { status: 500 });
   }
 
   // Load purchase to get filters and bundle count
@@ -75,7 +75,7 @@ export async function POST(request: Request) {
 
   if (!purchase || !purchase.bundle) {
     console.error("Purchase or bundle not found:", purchaseId);
-    return NextResponse.json({ error: "Purchase not found" }, { status: 404 });
+    return NextResponse.json({ error: "Kupnja nije pronađena." }, { status: 404 });
   }
 
   const bundle = purchase.bundle as { question_count: number };
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
       .from("purchases")
       .update({ status: "failed" })
       .eq("id", purchaseId);
-    return NextResponse.json({ error: "Assignment failed" }, { status: 500 });
+    return NextResponse.json({ error: "Dodjela pitanja nije uspjela." }, { status: 500 });
   }
 
   return NextResponse.json({ success: true });

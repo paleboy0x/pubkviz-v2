@@ -24,7 +24,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PubKviz — pitanja za pub kviz",
   description:
-    "Kupi kurirana pub kviz pitanja po kategorijama i težini. Bez ponavljanja kroz kupnje.",
+    "Kupi pub kviz pitanja po kategorijama i težini. Bez ponavljanja kroz kupnje.",
 };
 
 export default function RootLayout({

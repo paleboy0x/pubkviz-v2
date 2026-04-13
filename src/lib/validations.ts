@@ -10,26 +10,26 @@ import {
 } from "./constants";
 
 export const loginSchema = z.object({
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  email: z.string().email("Neispravna adresa e-pošte"),
+  password: z.string().min(6, "Lozinka: najmanje 6 znakova"),
 });
 
 export const registerSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(100),
-  lastName: z.string().min(1, "Last name is required").max(100),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  firstName: z.string().min(1, "Ime je obavezno").max(100),
+  lastName: z.string().min(1, "Prezime je obavezno").max(100),
+  email: z.string().email("Neispravna adresa e-pošte"),
+  password: z.string().min(6, "Lozinka: najmanje 6 znakova"),
 });
 
 export const questionSchema = z
   .object({
-    text: z.string().min(1, "Question text is required").max(2000),
+    text: z.string().min(1, "Tekst pitanja je obavezan").max(2000),
     type: z.enum(QUESTION_TYPES),
     options: z.array(z.string().min(1)).nullable(),
-    answer: z.string().min(1, "Answer is required").max(2000),
+    answer: z.string().min(1, "Odgovor je obavezan").max(2000),
     explanation: z.string().max(2000).nullable().optional(),
     category: z.enum(CATEGORY_LIST as unknown as [string, ...string[]]),
-    subcategory: z.string().min(1, "Subcategory is required"),
+    subcategory: z.string().min(1, "Podkategorija je obavezna"),
     difficulty: z.number().int().min(1).max(5),
     language: z.enum(LANGUAGES),
   })
@@ -38,7 +38,7 @@ export const questionSchema = z
       const subs = CATEGORIES[data.category as Category];
       return subs?.includes(data.subcategory as never);
     },
-    { message: "Subcategory must belong to the selected category", path: ["subcategory"] }
+    { message: "Podkategorija mora pripadati odabranoj kategoriji", path: ["subcategory"] }
   )
   .refine(
     (data) => {
@@ -47,30 +47,30 @@ export const questionSchema = z
       }
       return true;
     },
-    { message: "Multiple choice questions need at least 2 options", path: ["options"] }
+    { message: "Višestruki izbor treba najmanje 2 ponuđena odgovora", path: ["options"] }
   )
   .refine(
     (data) => {
       if (data.type === "true_false") {
-        return data.answer === "True" || data.answer === "False";
+        return data.answer === "Točno" || data.answer === "Netočno";
       }
       return true;
     },
-    { message: "True/False questions must have 'True' or 'False' as answer", path: ["answer"] }
+    { message: "Odaberi Točno ili Netočno", path: ["answer"] }
   );
 
 export const bundleSchema = z.object({
-  name: z.string().min(1, "Name is required").max(100),
-  paddlePriceId: z.string().min(1, "Paddle Price ID is required"),
-  questionCount: z.number().int().min(1, "Must include at least 1 question"),
+  name: z.string().min(1, "Naziv je obavezan").max(100),
+  paddlePriceId: z.string().min(1, "Paddle Price ID je obavezan"),
+  questionCount: z.number().int().min(1, "Najmanje jedno pitanje"),
   isActive: z.boolean().default(true),
 });
 
 export const createUserSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(100),
-  lastName: z.string().min(1, "Last name is required").max(100),
-  email: z.string().email("Invalid email address"),
-  password: z.string().min(6, "Password must be at least 6 characters"),
+  firstName: z.string().min(1, "Ime je obavezno").max(100),
+  lastName: z.string().min(1, "Prezime je obavezno").max(100),
+  email: z.string().email("Neispravna adresa e-pošte"),
+  password: z.string().min(6, "Lozinka: najmanje 6 znakova"),
   role: z.enum(USER_ROLES.filter((r) => r !== "admin") as unknown as [string, ...string[]]),
 });
 

@@ -9,7 +9,7 @@ export async function POST(request: Request) {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return NextResponse.json({ error: "Nisi prijavljen." }, { status: 401 });
   }
 
   const { data: profile } = await supabase
@@ -19,7 +19,7 @@ export async function POST(request: Request) {
     .single();
 
   if (profile?.role !== "admin") {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    return NextResponse.json({ error: "Nemaš ovlasti." }, { status: 403 });
   }
 
   const body = await request.json();

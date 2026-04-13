@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCategoryLabel } from "@/lib/constants";
+import { DIFFICULTY_LABELS_HR, formatCategoryLabel } from "@/lib/constants";
 
 interface PurchaseRow {
   id: string;
@@ -71,13 +71,17 @@ export default function PurchaseHistoryPage() {
             )}
             {purchases.map((p) => (
               <TableRow key={p.id}>
-                <TableCell>{new Date(p.created_at).toLocaleDateString()}</TableCell>
+                <TableCell>{new Date(p.created_at).toLocaleDateString("hr-HR")}</TableCell>
                 <TableCell className="font-medium">{p.bundle?.name ?? "—"}</TableCell>
                 <TableCell>{p.bundle?.question_count ?? "—"}</TableCell>
                 <TableCell>
                   {p.category_filter ? formatCategoryLabel(p.category_filter) : "—"}
                 </TableCell>
-                <TableCell>{p.difficulty_filter ?? "—"}</TableCell>
+                <TableCell>
+                  {p.difficulty_filter != null
+                    ? DIFFICULTY_LABELS_HR[p.difficulty_filter] ?? p.difficulty_filter
+                    : "—"}
+                </TableCell>
                 <TableCell>
                   <Badge
                     variant={

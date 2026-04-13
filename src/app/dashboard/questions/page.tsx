@@ -11,7 +11,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CATEGORY_LIST, DIFFICULTY_LEVELS, formatCategoryLabel } from "@/lib/constants";
+import {
+  CATEGORY_LIST,
+  DIFFICULTY_LEVELS,
+  formatCategoryLabel,
+  DIFFICULTY_LABELS_HR,
+  questionTypeLabel,
+} from "@/lib/constants";
 import { Label } from "@/components/ui/label";
 import type { Question } from "@/lib/types/database";
 
@@ -83,7 +89,7 @@ export default function MyQuestionsPage() {
               <SelectItem value="all">Sve razine</SelectItem>
               {DIFFICULTY_LEVELS.map((d) => (
                 <SelectItem key={d} value={String(d)}>
-                  Razina {d}
+                  {DIFFICULTY_LABELS_HR[d]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -102,8 +108,8 @@ export default function MyQuestionsPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-center gap-2 flex-wrap mb-2">
                   <Badge variant="outline">{formatCategoryLabel(q.category)}</Badge>
-                  <Badge variant="secondary">Difficulty {q.difficulty}</Badge>
-                  <Badge variant="secondary">{formatCategoryLabel(q.type)}</Badge>
+                  <Badge variant="secondary">{DIFFICULTY_LABELS_HR[q.difficulty]}</Badge>
+                  <Badge variant="secondary">{questionTypeLabel(q.type)}</Badge>
                 </div>
                 <CardTitle className="text-base leading-snug">{q.text}</CardTitle>
               </CardHeader>

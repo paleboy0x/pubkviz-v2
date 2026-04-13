@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatCategoryLabel } from "@/lib/constants";
+import { formatCategoryLabel, DIFFICULTY_LABELS_HR } from "@/lib/constants";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CATEGORY_LIST, DIFFICULTY_LEVELS } from "@/lib/constants";
 import type { Bundle } from "@/lib/types/database";
@@ -56,14 +56,6 @@ async function getStats() {
     return { total: 0, categories: [], difficulties: [], bundles: [] };
   }
 }
-
-const DIFFICULTY_LABELS: Record<number, string> = {
-  1: "Lako",
-  2: "Lako–srednje",
-  3: "Srednje",
-  4: "Srednje–teško",
-  5: "Teško",
-};
 
 export default async function LandingPage() {
   const stats = await getStats();
@@ -132,7 +124,7 @@ export default async function LandingPage() {
         <div className="mx-auto max-w-4xl text-center animate-fade-in">
           <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.25em] text-[#9b9ba8]">
             <span className="h-1 w-1 rounded-full bg-[#c8c8d4] shadow-[0_0_8px_#e0e0e8]" />
-            Kurirano. Provjereno.
+            Pitanja za pub kviz
           </p>
 
           <h1 className="font-display text-[clamp(3rem,12vw,7rem)] leading-[0.92] tracking-[0.02em] text-[#f4f4f8]">
@@ -142,8 +134,8 @@ export default async function LandingPage() {
           </h1>
 
           <p className="mx-auto mt-8 max-w-lg text-[16px] leading-relaxed text-[#8b8b96]">
-            Odaberi kategoriju i težinu, ili potpuno nasumično. Isto pitanje nećeš dobiti
-            dvaput — kroz sve kupnje, zauvijek.
+            Kupiš paket pitanja, filtriraš po želji ili uzmeš mješavinu. Isto pitanje ne dolazi
+            dvaput — pamti se za tvoj račun.
           </p>
 
           <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
@@ -176,40 +168,27 @@ export default async function LandingPage() {
               ZAŠTO PUBKVIZ
             </p>
             <h2 className="text-3xl font-semibold tracking-tight text-[#ececf1] sm:text-4xl">
-              Za voditelje koji ne žele dosadne kvizove iz kutije.
+              Jednostavno za voditelja, jasno za ekipu.
             </h2>
             <p className="mt-4 text-[15px] leading-relaxed text-[#8b8b96]">
-              Tjedni pubovi, team buildingi, privatne večeri — jedno mjesto za pitanja koja
-              drže pažnju. Samo odobreni tekstovi; nema ispune koja zvuči kao generički
-              šablon.
+              Za pub, društvo ili posao: kupiš set pitanja, dobiješ ih na račun. Autori šalju
+              nacrte, administrator odobri — ti koristiš samo provjereno.
             </p>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 sm:grid-cols-3">
             {[
               {
-                title: "Kurirano skladište",
-                desc: "Ništa ne izlazi dok ne prođe provjeru. Nacrt unutra, odobreno van.",
+                title: "Bez ponavljanja",
+                desc: "Isto pitanje ti se ne pojavljuje ponovo nakon što ga jednom dobiješ.",
               },
               {
-                title: "Nula ponavljanja",
-                desc: "Kroz sve kupnje — isto pitanje ti se neće ponoviti.",
+                title: "Tvoj odabir",
+                desc: "Možeš filtrirati kategoriju i težinu ili uzeti potpuno nasumično.",
               },
               {
-                title: "Tvoj miks",
-                desc: "Kategorija, težina ili potpuni random — ti odabireš.",
-              },
-              {
-                title: "Odmah nakon kupnje",
-                desc: "Plaćanje gotovo, pitanja dodijeljena na račun. Bez čekanja na PDF.",
-              },
-              {
-                title: "HR i EN",
-                desc: "Pitanja na hrvatskom i engleskom; ostali jezici u planu.",
-              },
-              {
-                title: "Paketi po mjeri",
-                desc: "Od manjeg seta do velikog — koliko ti treba za večer.",
+                title: "Brzo na račun",
+                desc: "Nakon kupnje pitanja su odmah u tvom profilu — bez čekanja.",
               },
             ].map((f) => (
               <div
@@ -292,7 +271,7 @@ export default async function LandingPage() {
                         ))}
                       </div>
                       <span className="text-[12px] uppercase tracking-wider text-[#6b6b78]">
-                        {DIFFICULTY_LABELS[d.difficulty]}
+                        {DIFFICULTY_LABELS_HR[d.difficulty]}
                       </span>
                       <span className="ml-auto font-mono text-sm tabular-nums text-[#ececf1]">
                         {d.count}
@@ -309,7 +288,7 @@ export default async function LandingPage() {
               <p className="text-[15px] text-[#6b6b78]">
                 Još nema javno vidljivih pitanja. Statistika prikazuje samo{" "}
                 <span className="text-[#9b9ba8]">odobrena</span> pitanja — nacrte
-                vidiš u Creator/Admin panelu dok moderator ne odobri.
+                vidiš u panelu za autore ili administratore dok moderator ne odobri.
               </p>
             </div>
           )}
