@@ -1,65 +1,422 @@
-import Image from "next/image";
+export const dynamic = "force-dynamic";
 
-export default function Home() {
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+import { formatCategoryLabel } from "@/lib/constants";
+import { createServerSupabaseClient } from "@/lib/supabase/server";
+import { CATEGORY_LIST, DIFFICULTY_LEVELS } from "@/lib/constants";
+import type { Bundle } from "@/lib/types/database";
+
+async function getStats() {
+  try {
+    // Anon RLS: samo odobrena pitanja i aktivni paketi — ne treba service_role.
+    const supabase = await createServerSupabaseClient();
+
+    const { count: totalCount } = await supabase
+      .from("questions")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "approved");
+
+    const categoryStats: { category: string; count: number }[] = [];
+    for (const cat of CATEGORY_LIST) {
+      const { count } = await supabase
+        .from("questions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "approved")
+        .eq("category", cat);
+      if ((count ?? 0) > 0) {
+        categoryStats.push({ category: cat, count: count ?? 0 });
+      }
+    }
+
+    const difficultyStats: { difficulty: number; count: number }[] = [];
+    for (const d of DIFFICULTY_LEVELS) {
+      const { count } = await supabase
+        .from("questions")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "approved")
+        .eq("difficulty", d);
+      difficultyStats.push({ difficulty: d, count: count ?? 0 });
+    }
+
+    const { data: bundlesData } = await supabase
+      .from("bundles")
+      .select("*")
+      .eq("is_active", true)
+      .order("question_count", { ascending: true });
+
+    return {
+      total: totalCount ?? 0,
+      categories: categoryStats,
+      difficulties: difficultyStats,
+      bundles: (bundlesData ?? []) as Bundle[],
+    };
+  } catch {
+    return { total: 0, categories: [], difficulties: [], bundles: [] };
+  }
+}
+
+const DIFFICULTY_LABELS: Record<number, string> = {
+  1: "Lako",
+  2: "Lako–srednje",
+  3: "Srednje",
+  4: "Srednje–teško",
+  5: "Teško",
+};
+
+export default async function LandingPage() {
+  const stats = await getStats();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
+    <div className="relative flex min-h-screen flex-col overflow-x-hidden bg-[#030304] text-[#ececf1]">
+      {/* Ambient orbs (background motion) */}
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div
+          className="absolute -left-[20%] top-[-10%] h-[70vmin] w-[70vmin] rounded-full bg-gradient-to-br from-[#3a3a44]/40 via-[#8a8a98]/25 to-transparent blur-[80px] animate-liquid-1"
+          aria-hidden
         />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+        <div
+          className="absolute -right-[15%] top-[20%] h-[55vmin] w-[55vmin] rounded-full bg-gradient-to-bl from-[#c8c8d4]/20 via-[#5a5a64]/30 to-transparent blur-[90px] animate-liquid-2"
+          aria-hidden
+        />
+        <div
+          className="absolute bottom-[-20%] left-[30%] h-[60vmin] w-[60vmin] rounded-full bg-gradient-to-t from-[#2a2a32]/50 via-[#6e6e7a]/20 to-transparent blur-[100px] animate-liquid-3"
+          aria-hidden
+        />
+        <div className="metal-noise absolute inset-0" aria-hidden />
+      </div>
+
+      <header className="sticky top-0 z-50 border-b border-white/[0.08] bg-[#030304]/75 backdrop-blur-xl">
+        <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
+          <Link
+            href="/"
+            className="font-display text-2xl tracking-[0.12em] text-[#ececf1] sm:text-[1.65rem]"
+          >
+            PUBKVIZ
+          </Link>
+
+          <nav className="hidden items-center gap-10 text-[13px] font-medium tracking-wide text-[#8b8b96] sm:flex">
+            <a href="#about" className="transition-colors hover:text-[#ececf1]">
+              O nama
+            </a>
+            <a href="#stats" className="transition-colors hover:text-[#ececf1]">
+              Statistika
+            </a>
+            <a href="#pricing" className="transition-colors hover:text-[#ececf1]">
+              Cijene
+            </a>
+          </nav>
+
+          <div className="flex items-center gap-4">
+            <Link
+              href="/auth/login"
+              className="text-[13px] font-medium text-[#8b8b96] transition-colors hover:text-[#ececf1]"
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+              Prijava
+            </Link>
+            <Link
+              href="/auth/register"
+              className={cn(
+                buttonVariants({ size: "sm" }),
+                "border border-white/15 bg-gradient-to-b from-[#e8e8ee] to-[#a8a8b4] px-5 text-[13px] font-semibold text-[#0a0a0c] shadow-[0_0_24px_-4px_rgba(200,200,212,0.35)] hover:from-[#f4f4f8] hover:to-[#b8b8c4]"
+              )}
             >
-              Learning
-            </a>{" "}
-            center.
+              Registracija
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <section className="relative isolate px-6 pb-28 pt-20 sm:pb-36 sm:pt-28">
+        <div className="mx-auto max-w-4xl text-center animate-fade-in">
+          <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.25em] text-[#9b9ba8]">
+            <span className="h-1 w-1 rounded-full bg-[#c8c8d4] shadow-[0_0_8px_#e0e0e8]" />
+            Kurirano. Provjereno.
           </p>
+
+          <h1 className="font-display text-[clamp(3rem,12vw,7rem)] leading-[0.92] tracking-[0.02em] text-[#f4f4f8]">
+            KVIZ PITANJA
+            <br />
+            <span className="text-chrome">SPREMNA ZA TVOJ PUB</span>
+          </h1>
+
+          <p className="mx-auto mt-8 max-w-lg text-[16px] leading-relaxed text-[#8b8b96]">
+            Odaberi kategoriju i težinu, ili potpuno nasumično. Isto pitanje nećeš dobiti
+            dvaput — kroz sve kupnje, zauvijek.
+          </p>
+
+          <div className="mt-12 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/auth/register"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "h-12 rounded-none border border-white/20 bg-gradient-to-b from-[#ececf1] to-[#9a9aa8] px-8 text-[14px] font-bold uppercase tracking-widest text-[#08080a] shadow-[0_0_40px_-8px_rgba(220,220,230,0.45)] hover:from-white hover:to-[#a8a8b4]"
+              )}
+            >
+              Otvori račun
+            </Link>
+            <a
+              href="#pricing"
+              className={cn(
+                buttonVariants({ size: "lg", variant: "outline" }),
+                "h-12 rounded-none border-white/20 bg-transparent px-8 text-[14px] font-semibold uppercase tracking-widest text-[#ececf1] hover:bg-white/5"
+              )}
+            >
+              Paketi
+            </a>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      <section id="about" className="border-t border-white/[0.06] px-6 py-24 sm:py-32">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-14 max-w-xl">
+            <p className="mb-3 font-display text-xl tracking-[0.2em] text-[#9b9ba8]">
+              ZAŠTO PUBKVIZ
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-[#ececf1] sm:text-4xl">
+              Za voditelje koji ne žele dosadne kvizove iz kutije.
+            </h2>
+            <p className="mt-4 text-[15px] leading-relaxed text-[#8b8b96]">
+              Tjedni pubovi, team buildingi, privatne večeri — jedno mjesto za pitanja koja
+              drže pažnju. Samo odobreni tekstovi; nema ispune koja zvuči kao generički
+              šablon.
+            </p>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              {
+                title: "Kurirano skladište",
+                desc: "Ništa ne izlazi dok ne prođe provjeru. Nacrt unutra, odobreno van.",
+              },
+              {
+                title: "Nula ponavljanja",
+                desc: "Kroz sve kupnje — isto pitanje ti se neće ponoviti.",
+              },
+              {
+                title: "Tvoj miks",
+                desc: "Kategorija, težina ili potpuni random — ti odabireš.",
+              },
+              {
+                title: "Odmah nakon kupnje",
+                desc: "Plaćanje gotovo, pitanja dodijeljena na račun. Bez čekanja na PDF.",
+              },
+              {
+                title: "HR i EN",
+                desc: "Pitanja na hrvatskom i engleskom; ostali jezici u planu.",
+              },
+              {
+                title: "Paketi po mjeri",
+                desc: "Od manjeg seta do velikog — koliko ti treba za večer.",
+              },
+            ].map((f) => (
+              <div
+                key={f.title}
+                className="metal-edge group rounded-2xl p-8 transition-[transform,box-shadow] duration-500 hover:-translate-y-0.5"
+              >
+                <div className="mb-4 h-px w-12 bg-gradient-to-r from-[#c8c8d4] to-transparent" />
+                <h3 className="font-display text-xl tracking-[0.08em] text-[#ececf1]">
+                  {f.title.toUpperCase()}
+                </h3>
+                <p className="mt-3 text-[14px] leading-relaxed text-[#8b8b96]">{f.desc}</p>
+              </div>
+            ))}
+          </div>
         </div>
-      </main>
+      </section>
+
+      <section id="stats" className="border-t border-white/[0.06] px-6 py-24 sm:py-32">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-14 text-center">
+            <p className="mb-3 font-display text-xl tracking-[0.2em] text-[#9b9ba8]">
+              SKLADIŠTE
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-[#ececf1] sm:text-4xl">
+              Brojke
+            </h2>
+            <p className="mx-auto mt-4 max-w-md text-[15px] text-[#8b8b96]">
+              {stats.total > 0
+                ? `${stats.total.toLocaleString("hr-HR")} odobrenih pitanja u opticaju.`
+                : "Skladište se puni — brojke će se pojaviti čim stigne sadržaj."}
+            </p>
+          </div>
+
+          {stats.total > 0 && (
+            <div className="space-y-12">
+              {stats.categories.length > 0 && (
+                <div>
+                  <h3 className="mb-5 font-display text-sm tracking-[0.25em] text-[#6b6b78]">
+                    KATEGORIJA
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {stats.categories.map((cat) => (
+                      <div
+                        key={cat.category}
+                        className="metal-edge flex items-center justify-between rounded-xl px-5 py-4"
+                      >
+                        <span className="text-[14px] text-[#c8c8d4]">
+                          {formatCategoryLabel(cat.category)}
+                        </span>
+                        <span className="font-mono text-sm tabular-nums text-[#ececf1]">
+                          {cat.count}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div>
+                <h3 className="mb-5 font-display text-sm tracking-[0.25em] text-[#6b6b78]">
+                  TEŽINA
+                </h3>
+                <div className="flex flex-wrap gap-3">
+                  {stats.difficulties.map((d) => (
+                    <div
+                      key={d.difficulty}
+                      className="metal-edge flex min-w-[200px] flex-1 items-center gap-4 rounded-xl px-5 py-4 sm:max-w-[280px]"
+                    >
+                      <div className="flex gap-1">
+                        {Array.from({ length: 5 }).map((_, i) => (
+                          <div
+                            key={i}
+                            className={cn(
+                              "h-1.5 w-5 rounded-sm",
+                              i < d.difficulty
+                                ? "bg-gradient-to-t from-[#5a5a64] to-[#d4d4dc]"
+                                : "bg-white/10"
+                            )}
+                          />
+                        ))}
+                      </div>
+                      <span className="text-[12px] uppercase tracking-wider text-[#6b6b78]">
+                        {DIFFICULTY_LABELS[d.difficulty]}
+                      </span>
+                      <span className="ml-auto font-mono text-sm tabular-nums text-[#ececf1]">
+                        {d.count}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {stats.total === 0 && (
+            <div className="metal-edge rounded-2xl px-8 py-20 text-center">
+              <p className="text-[15px] text-[#6b6b78]">
+                Još nema javno vidljivih pitanja. Statistika prikazuje samo{" "}
+                <span className="text-[#9b9ba8]">odobrena</span> pitanja — nacrte
+                vidiš u Creator/Admin panelu dok moderator ne odobri.
+              </p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section id="pricing" className="border-t border-white/[0.06] px-6 py-24 sm:py-32">
+        <div className="mx-auto max-w-6xl">
+          <div className="mb-14 text-center">
+            <p className="mb-3 font-display text-xl tracking-[0.2em] text-[#9b9ba8]">
+              PAKETI
+            </p>
+            <h2 className="text-3xl font-semibold tracking-tight text-[#ececf1] sm:text-4xl">
+              Odaberi paket
+            </h2>
+            <p className="mx-auto mt-4 max-w-md text-[15px] text-[#8b8b96]">
+              Jednokratna kupnja. Bez pretplate.
+            </p>
+          </div>
+
+          <div className="mx-auto grid max-w-4xl gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {(stats.bundles.length > 0
+              ? stats.bundles.map((b) => ({
+                  name: b.name,
+                  count: b.question_count,
+                  id: b.id,
+                }))
+              : [
+                  { name: "Mali", count: 25, id: "small" },
+                  { name: "Srednji", count: 50, id: "medium" },
+                  { name: "Veliki", count: 100, id: "large" },
+                ]
+            ).map((bundle, i, arr) => {
+              const isPopular = i === 1 && arr.length === 3;
+              return (
+                <div
+                  key={bundle.id}
+                  className={cn(
+                    "metal-edge relative flex flex-col rounded-2xl p-8",
+                    isPopular &&
+                      "ring-1 ring-[#c8c8d4]/40 shadow-[0_0_60px_-12px_rgba(200,200,212,0.25)]"
+                  )}
+                >
+                  {isPopular && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="font-display whitespace-nowrap bg-gradient-to-b from-[#ececf1] to-[#9898a4] px-4 py-1 text-[10px] tracking-[0.2em] text-[#0a0a0c]">
+                        NAJPOPULARNIJI
+                      </span>
+                    </div>
+                  )}
+
+                  <h3 className="font-display text-3xl tracking-[0.06em] text-[#ececf1]">
+                    {bundle.name.toUpperCase()}
+                  </h3>
+                  <p className="mt-2 font-mono text-sm text-[#6b6b78]">
+                    {bundle.count} pitanja / kupnja
+                  </p>
+
+                  <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+
+                  <ul className="flex-1 space-y-3 text-[13px] text-[#9b9ba8]">
+                    {[
+                      `${bundle.count} jedinstvenih pitanja`,
+                      "Filtar po kategoriji i težini",
+                      "Bez ponavljanja istog pitanja",
+                      "Dodjela odmah nakon uspješnog plaćanja",
+                    ].map((item) => (
+                      <li key={item} className="flex gap-3">
+                        <span className="text-[#c8c8d4]">▸</span>
+                        {item}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link
+                    href="/auth/register"
+                    className={cn(
+                      "mt-10 flex h-11 items-center justify-center text-[12px] font-bold uppercase tracking-[0.2em] transition-all",
+                      isPopular
+                        ? "border border-white/10 bg-gradient-to-b from-[#ececf1] to-[#8e8e9c] text-[#08080a] hover:brightness-110"
+                        : "border border-white/15 text-[#ececf1] hover:bg-white/5"
+                    )}
+                  >
+                    Kupi
+                  </Link>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </section>
+
+      <footer className="border-t border-white/[0.06] px-6 py-10">
+        <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
+          <p className="font-display text-sm tracking-[0.15em] text-[#5a5a64]">
+            © {new Date().getFullYear()} PUBKVIZ
+          </p>
+          <div className="flex gap-10 text-[12px] font-medium uppercase tracking-widest text-[#6b6b78]">
+            <Link href="/auth/login" className="hover:text-[#ececf1]">
+              Prijava
+            </Link>
+            <Link href="/auth/register" className="hover:text-[#ececf1]">
+              Registracija
+            </Link>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
