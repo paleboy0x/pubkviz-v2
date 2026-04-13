@@ -188,11 +188,21 @@ export type PurchaseStatus = (typeof PURCHASE_STATUSES)[number];
 
 export const DIFFICULTY_LABELS_HR: Record<number, string> = {
   1: "Lako",
-  2: "Lako–srednje",
+  2: "2",
   3: "Srednje",
-  4: "Srednje–teško",
+  4: "4",
   5: "Teško",
 };
+
+/** Broj pitanja s ispravnom deklinacijom (1 pitanje, 30 pitanja, …). */
+export function formatQuestionCount(count: number): string {
+  const n = Math.floor(Math.abs(count));
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  const num = n.toLocaleString("hr-HR");
+  if (mod10 === 1 && mod100 !== 11) return `${num} pitanje`;
+  return `${num} pitanja`;
+}
 
 export function getSubcategories(category: Category): readonly string[] {
   return CATEGORIES[category];

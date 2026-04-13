@@ -13,7 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { CATEGORY_LIST, DIFFICULTY_LEVELS, formatCategoryLabel } from "@/lib/constants";
+import {
+  CATEGORY_LIST,
+  DIFFICULTY_LEVELS,
+  formatCategoryLabel,
+  formatQuestionCount,
+} from "@/lib/constants";
 import { toast } from "sonner";
 import type { Bundle } from "@/lib/types/database";
 
@@ -168,9 +173,7 @@ export default function BuyPage() {
             >
               <CardHeader>
                 <CardTitle>{bundle.name}</CardTitle>
-                <CardDescription>
-                  {bundle.question_count} pitanja u paketu
-                </CardDescription>
+                <CardDescription>{formatQuestionCount(bundle.question_count)}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Button

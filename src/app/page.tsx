@@ -3,7 +3,11 @@ export const dynamic = "force-dynamic";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { formatCategoryLabel, DIFFICULTY_LABELS_HR } from "@/lib/constants";
+import {
+  formatCategoryLabel,
+  DIFFICULTY_LABELS_HR,
+  formatQuestionCount,
+} from "@/lib/constants";
 import { createServerSupabaseClient } from "@/lib/supabase/server";
 import { CATEGORY_LIST, DIFFICULTY_LEVELS } from "@/lib/constants";
 import type { Bundle } from "@/lib/types/database";
@@ -55,6 +59,10 @@ async function getStats() {
   } catch {
     return { total: 0, categories: [], difficulties: [], bundles: [] };
   }
+}
+
+function catalogCountLine(total: number): string {
+  return `Provjerenih pitanja u katalogu: ${total.toLocaleString("hr-HR")}.`;
 }
 
 export default async function LandingPage() {
@@ -120,7 +128,7 @@ export default async function LandingPage() {
         </div>
       </header>
 
-      <section className="relative isolate px-6 pb-28 pt-20 sm:pb-36 sm:pt-28">
+      <section className="relative isolate px-6 pb-16 pt-14 sm:pb-20 sm:pt-20">
         <div className="mx-auto max-w-4xl text-center animate-fade-in">
           <p className="mb-8 inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.04] px-4 py-1.5 text-[11px] font-medium uppercase tracking-[0.25em] text-[#9b9ba8]">
             <span className="h-1 w-1 rounded-full bg-[#c8c8d4] shadow-[0_0_8px_#e0e0e8]" />
@@ -161,9 +169,9 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="about" className="border-t border-white/[0.06] px-6 py-24 sm:py-32">
+      <section id="about" className="border-t border-white/[0.06] px-6 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-14 max-w-xl">
+          <div className="mb-10 max-w-xl">
             <p className="mb-3 font-display text-xl tracking-[0.2em] text-[#9b9ba8]">
               ZAŠTO PUBKVIZ
             </p>
@@ -171,8 +179,9 @@ export default async function LandingPage() {
               Jednostavno za voditelja, jasno za ekipu.
             </h2>
             <p className="mt-4 text-[15px] leading-relaxed text-[#8b8b96]">
-              Za pub, društvo ili posao: kupiš set pitanja, dobiješ ih na račun. Autori šalju
-              nacrte, administrator odobri — ti koristiš samo provjereno.
+              Za pub, društvo ili posao: kupiš set pitanja i dobiješ ih na račun. Sadržaj je
+              moderiran i provjeren prije nego uđe u katalog — koristiš pouzdana i uredno
+              obrađena pitanja.
             </p>
           </div>
 
@@ -206,24 +215,24 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <section id="stats" className="border-t border-white/[0.06] px-6 py-24 sm:py-32">
+      <section id="stats" className="border-t border-white/[0.06] px-6 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-14 text-center">
+          <div className="mb-10 text-center">
             <p className="mb-3 font-display text-xl tracking-[0.2em] text-[#9b9ba8]">
-              SKLADIŠTE
+              PREGLED KATALOGA
             </p>
             <h2 className="text-3xl font-semibold tracking-tight text-[#ececf1] sm:text-4xl">
-              Brojke
+              Dostupni sadržaj
             </h2>
             <p className="mx-auto mt-4 max-w-md text-[15px] text-[#8b8b96]">
               {stats.total > 0
-                ? `${stats.total.toLocaleString("hr-HR")} odobrenih pitanja u opticaju.`
-                : "Skladište se puni — brojke će se pojaviti čim stigne sadržaj."}
+                ? catalogCountLine(stats.total)
+                : "Katalog se priprema — ovdje će uskoro biti vidljiv broj provjerenih pitanja."}
             </p>
           </div>
 
           {stats.total > 0 && (
-            <div className="space-y-12">
+            <div className="space-y-8">
               {stats.categories.length > 0 && (
                 <div>
                   <h3 className="mb-5 font-display text-sm tracking-[0.25em] text-[#6b6b78]">
@@ -284,20 +293,19 @@ export default async function LandingPage() {
           )}
 
           {stats.total === 0 && (
-            <div className="metal-edge rounded-2xl px-8 py-20 text-center">
+            <div className="metal-edge rounded-2xl px-8 py-14 text-center">
               <p className="text-[15px] text-[#6b6b78]">
-                Još nema javno vidljivih pitanja. Statistika prikazuje samo{" "}
-                <span className="text-[#9b9ba8]">odobrena</span> pitanja — nacrte
-                vidiš u panelu za autore ili administratore dok moderator ne odobri.
+                Još nema pitanja u javnom katalogu. Prikazuju se samo provjerena pitanja nakon
+                završene moderacije.
               </p>
             </div>
           )}
         </div>
       </section>
 
-      <section id="pricing" className="border-t border-white/[0.06] px-6 py-24 sm:py-32">
+      <section id="pricing" className="border-t border-white/[0.06] px-6 py-14 sm:py-16">
         <div className="mx-auto max-w-6xl">
-          <div className="mb-14 text-center">
+          <div className="mb-10 text-center">
             <p className="mb-3 font-display text-xl tracking-[0.2em] text-[#9b9ba8]">
               PAKETI
             </p>
@@ -344,14 +352,14 @@ export default async function LandingPage() {
                     {bundle.name.toUpperCase()}
                   </h3>
                   <p className="mt-2 font-mono text-sm text-[#6b6b78]">
-                    {bundle.count} pitanja / kupnja
+                    {formatQuestionCount(bundle.count)}
                   </p>
 
                   <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
                   <ul className="flex-1 space-y-3 text-[13px] text-[#9b9ba8]">
                     {[
-                      `${bundle.count} jedinstvenih pitanja`,
+                      "Pitanja u paketu međusobno su jedinstvena",
                       "Filtar po kategoriji i težini",
                       "Bez ponavljanja istog pitanja",
                       "Dodjela odmah nakon uspješnog plaćanja",
@@ -381,7 +389,7 @@ export default async function LandingPage() {
         </div>
       </section>
 
-      <footer className="border-t border-white/[0.06] px-6 py-10">
+      <footer className="border-t border-white/[0.06] px-6 py-8">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 sm:flex-row">
           <p className="font-display text-sm tracking-[0.15em] text-[#5a5a64]">
             © {new Date().getFullYear()} PUBKVIZ
