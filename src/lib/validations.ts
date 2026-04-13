@@ -14,12 +14,18 @@ export const loginSchema = z.object({
   password: z.string().min(6, "Lozinka: najmanje 6 znakova"),
 });
 
-export const registerSchema = z.object({
-  firstName: z.string().min(1, "Ime je obavezno").max(100),
-  lastName: z.string().min(1, "Prezime je obavezno").max(100),
-  email: z.string().email("Neispravna adresa e-pošte"),
-  password: z.string().min(6, "Lozinka: najmanje 6 znakova"),
-});
+export const registerSchema = z
+  .object({
+    firstName: z.string().min(1, "Ime je obavezno").max(100),
+    lastName: z.string().min(1, "Prezime je obavezno").max(100),
+    email: z.string().trim().email("Neispravna adresa e-pošte"),
+    confirmEmail: z.string().trim().email("Neispravna adresa e-pošte"),
+    password: z.string().min(6, "Lozinka: najmanje 6 znakova"),
+  })
+  .refine((d) => d.email.toLowerCase() === d.confirmEmail.toLowerCase(), {
+    message: "Adrese e-pošte se ne podudaraju",
+    path: ["confirmEmail"],
+  });
 
 export const questionSchema = z
   .object({

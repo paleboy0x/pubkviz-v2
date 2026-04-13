@@ -92,7 +92,7 @@ export default function RegisterPage() {
           <p className="font-display text-xs tracking-[0.3em] text-[#6b6b78]">NOVI KORISNIK</p>
           <CardTitle className="font-display text-3xl tracking-[0.08em]">REGISTRACIJA</CardTitle>
           <CardDescription className="text-[#8b8b96]">
-            Ime, prezime i e-pošta — ostalo dolazi samo
+            Ime, prezime, e-pošta (dvaput) i lozinka
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -124,12 +124,29 @@ export default function RegisterPage() {
               <Input
                 id="email"
                 type="email"
+                autoComplete="email"
                 placeholder="ti@primjer.hr"
                 className={inputClass}
                 {...register("email")}
               />
               {errors.email && (
                 <p className="text-sm text-red-400">{errors.email.message}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirmEmail" className="text-[#9b9ba8]">
+                Ponovi e-poštu
+              </Label>
+              <Input
+                id="confirmEmail"
+                type="email"
+                autoComplete="email"
+                placeholder="ti@primjer.hr"
+                className={inputClass}
+                {...register("confirmEmail")}
+              />
+              {errors.confirmEmail && (
+                <p className="text-sm text-red-400">{errors.confirmEmail.message}</p>
               )}
             </div>
             <div className="space-y-2">
