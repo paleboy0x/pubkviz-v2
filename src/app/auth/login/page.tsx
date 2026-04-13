@@ -25,38 +25,53 @@ export default function LoginPage() {
 
   async function onSubmit(data: LoginInput) {
     setLoading(true);
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({
-      email: data.email,
-      password: data.password,
-    });
+    try {
+      if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+        toast.error("Nedostaju Supabase postavke na serveru. U Vercelu dodaj NEXT_PUBLIC_SUPABASE_URL i NEXT_PUBLIC_SUPABASE_ANON_KEY.");
+        return;
+      }
 
-    if (error) {
-      toast.error(error.message);
+      const supabase = createClient();
+      const { error } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (error) {
+        toast.error(error.message);
+        return;
+      }
+
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Prijava nije potvrđena. Pokušaj ponovo.");
+        return;
+      }
+
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single();
+
+      if (profileError) {
+        toast.error(profileError.message);
+        return;
+      }
+
+      router.refresh();
+
+      if (profile?.role === "admin") {
+        router.push("/admin");
+      } else if (profile?.role === "creator") {
+        router.push("/creator");
+      } else {
+        router.push("/dashboard");
+      }
+    } finally {
       setLoading(false);
-      return;
-    }
-
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    if (!user) {
-      router.push("/dashboard");
-      return;
-    }
-
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("role")
-      .eq("id", user.id)
-      .single();
-
-    if (profile?.role === "admin") {
-      router.push("/admin");
-    } else if (profile?.role === "creator") {
-      router.push("/creator");
-    } else {
-      router.push("/dashboard");
     }
   }
 
