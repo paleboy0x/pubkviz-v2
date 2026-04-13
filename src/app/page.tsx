@@ -65,6 +65,57 @@ function catalogCountLine(total: number): string {
   return `Provjerenih pitanja u katalogu: ${total.toLocaleString("hr-HR")}.`;
 }
 
+function difficultyLabelForLanding(level: number): string {
+  if (level === 2 || level === 4) return "";
+  return DIFFICULTY_LABELS_HR[level] ?? "";
+}
+
+function packageHighlights(
+  name: string,
+  count: number,
+  index: number,
+  total: number
+): string[] {
+  const normalized = name.toLowerCase();
+  const isSmall = normalized.includes("mali") || index === 0;
+  const isMiddle = normalized.includes("srednji") || index === Math.floor(total / 2);
+  const isLarge = normalized.includes("veliki") || index === total - 1;
+
+  if (isSmall) {
+    return [
+      `Idealno za brzi pub krug (${formatQuestionCount(count)})`,
+      "Lak početak za testnu ili kraću večer",
+      "Filtar po kategoriji i težini",
+      "Bez ponavljanja istog pitanja",
+    ];
+  }
+
+  if (isMiddle) {
+    return [
+      `Najbolji omjer opsega i ritma (${formatQuestionCount(count)})`,
+      "Dovoljno sadržaja za punu večer kviza",
+      "Filtar po kategoriji i težini",
+      "Dodjela odmah nakon uspješnog plaćanja",
+    ];
+  }
+
+  if (isLarge) {
+    return [
+      `Maksimalan fond za duže događaje (${formatQuestionCount(count)})`,
+      "Stvoren za turnire i višekratno korištenje",
+      "Filtar po kategoriji i težini",
+      "Bez ponavljanja istog pitanja",
+    ];
+  }
+
+  return [
+    `Paket s ${formatQuestionCount(count)}`,
+    "Provjerena pitanja spremna za kviz",
+    "Filtar po kategoriji i težini",
+    "Dodjela odmah nakon uspješnog plaćanja",
+  ];
+}
+
 export default async function LandingPage() {
   const stats = await getStats();
 
@@ -280,7 +331,7 @@ export default async function LandingPage() {
                         ))}
                       </div>
                       <span className="text-[12px] uppercase tracking-wider text-[#6b6b78]">
-                        {DIFFICULTY_LABELS_HR[d.difficulty]}
+                        {difficultyLabelForLanding(d.difficulty)}
                       </span>
                       <span className="ml-auto font-mono text-sm tabular-nums text-[#ececf1]">
                         {d.count}
@@ -358,12 +409,7 @@ export default async function LandingPage() {
                   <div className="my-6 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent" />
 
                   <ul className="flex-1 space-y-3 text-[13px] text-[#9b9ba8]">
-                    {[
-                      "Pitanja u paketu međusobno su jedinstvena",
-                      "Filtar po kategoriji i težini",
-                      "Bez ponavljanja istog pitanja",
-                      "Dodjela odmah nakon uspješnog plaćanja",
-                    ].map((item) => (
+                    {packageHighlights(bundle.name, bundle.count, i, arr.length).map((item) => (
                       <li key={item} className="flex gap-3">
                         <span className="text-[#c8c8d4]">▸</span>
                         {item}

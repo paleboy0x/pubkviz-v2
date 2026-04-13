@@ -188,9 +188,9 @@ export type PurchaseStatus = (typeof PURCHASE_STATUSES)[number];
 
 export const DIFFICULTY_LABELS_HR: Record<number, string> = {
   1: "Lako",
-  2: "2",
+  2: "Lako–srednje",
   3: "Srednje",
-  4: "4",
+  4: "Srednje–teško",
   5: "Teško",
 };
 
